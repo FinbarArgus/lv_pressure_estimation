@@ -16,7 +16,6 @@ tomtec_data_dir = '/mnt/heart-eresearch/Projects/biobeat/analyses/echo-reporting
 save_path_inv = '/mnt/heart-eresearch/Sandboxes/Finbar/invasive/'
 save_path_tomtec = '/mnt/heart-eresearch/Sandboxes/Finbar/tomtec/'
 
-
 ec = BBdata()
 inv_data = ec.data_dict_general(inv_data_dir)
 # result = json_df.to_json(orient='records')
@@ -24,9 +23,9 @@ inv_data = ec.data_dict_general(inv_data_dir)
     # json.dump(parsed, wf, indent=2)
     # json.dump(inv_data, wf, indent=2)
 
-# inv_df = pd.DataFrame(inv_data)
+inv_df = pd.DataFrame(inv_data)
 # save invasive data to pickle
-# inv_df.to_pickle(os.path.join(save_path_inv, 'inv_data.p'))
+inv_df.to_pickle(os.path.join(save_path_inv, 'inv_data.pkl'))
 
 study_data = rt.read_series_of_tomtec_worksheets_s(tomtec_data_dir, 'BB')
 
