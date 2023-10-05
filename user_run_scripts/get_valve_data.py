@@ -103,7 +103,8 @@ def get_needed_data_inv_and_tomtec(inv_data_path, tomtec_data_path,
 
     return needed_data, patients_with_all, nice_names_all
 
-def write_to_json_file(data_dict, variables_of_interest, constants_of_interest, save_path, extra_df=None, sample_rate=100):
+def write_to_json_file(data_dict, variables_of_interest, constants_of_interest, save_path, 
+                       extra_df=None, sample_rate=100, save_name='lv_estimation'):
     """
     variables_of_interest = [(data_variable_name, model_variable_name,
                                variable_type {min, max, mean, series, or [series, min]},
@@ -204,13 +205,13 @@ def write_to_json_file(data_dict, variables_of_interest, constants_of_interest, 
         # json_tomtec_df.to_json(output_json_file_name)
         result = json_df.to_json(orient='records')
         parsed = json.loads(result)
-        with open(os.path.join(save_path, f'lv_estimation_observables_{participant_id}.json'), 'w') as wf:
+        with open(os.path.join(save_path, f'{save_name}_observables_{participant_id}.json'), 'w') as wf:
             json.dump(parsed, wf, indent=2)
         
         constants_json_df = pd.DataFrame(constant_list)
         constants_result = constants_json_df.to_json(orient='records')
         constants_parsed = json.loads(constants_result)
-        with open(os.path.join(save_path, f'lv_estimation_constants_{participant_id}.json'), 'w') as wf:
+        with open(os.path.join(save_path, f'{save_name}_constants_{participant_id}.json'), 'w') as wf:
             json.dump(constants_parsed, wf, indent=2)
 
 def get_pressure_segments_and_intrabeat_periods_from_ecg(data_dict, plot_dir):
@@ -575,99 +576,3 @@ if __name__ == '__main__':
     write_to_json_file(reduced_data_dict, variables_of_interest, constants_of_interest,
                        save_path_combined, sample_rate=100.0)
 
->>>>>>> a2bd6e65ab894a6a347cd01efc663a9e8d0667cc
-
-    if nice_names_inv in [[], None]:
-        nice_names_inv = measurements_needed_inv
-    if nice_names_tomtec in [[], None]:
-        nice_names_tomtec= measurements_needed_tomtec
-    nice_names_all = nice_names_inv + nice_names_tomtec
-    
-    # get inv data dict
-    inv_dict = pd.read_pickle(inv_data_path)
-    all_labels = ec.dict_counter(inv_dict)
-    import pdb; pdb.set_trace()
-
-    #get tomtec (echo) dataframe
-    df = pd.read_csv(tomtec_data_path)
-    df['patient_ID'].replace({'_':''}, regex=True, inplace=True)
-    desc_df = pd.read_csv(tomtec_desc_path) 
-
-    # get the patients that have the measurements we need
-    patients_with_measurement = []
-    for measurement_name in measurements_needed_inv:
-        patients_with_measurement.append(all_labels[measurement_name]['idxs'])
-
-    for measurement_name in measurements_needed_tomtec:
-        patients_with_measurement.append([entry for entry in 
-            df[~np.isnan(df[measurement_name])]['patient_ID'].to_list()])
-
-    all_set = set.intersection(*[set(x) for x in patients_with_measurement])
-    patients_with_all = list(all_set)
-    # patients_with_all = list(set(patients_with_v_aov) & set(patients_with_D_aov)).sort()
-
-    num_patients = len(patients_with_all)
-
-    inv_needed_data = {}
-    for patient_id in patients_with_all:
-        inv_needed_data[patient_id] = {}
-        for measurement_name, nice_name in zip(measurements_needed_inv, nice_names_inv):
-            inv_needed_data[patient_id][nice_name] = []
-            inv_needed_data[patient_id][nice_name+'_count'] = 0
-            inv_needed_data[patient_id][nice_name+'_type'] = 'array'
-            for Xnum_idx in inv_dict[patient_id].keys():
-                if measurement_name in inv_dict[patient_id][Xnum_idx].keys():
-                    inv_needed_data[patient_id][nice_name].append(inv_dict[patient_id][Xnum_idx][measurement_name])
-                    inv_needed_data[patient_id][nice_name+'_count'] += 1
-
-    print(inv_needed_data)
-    needed_data = inv_needed_data
-
-    tomtec_needed_data = df[df['patient_ID'].isin(patients_with_all)][['patient_ID'] + measurements_needed_tomtec]
-    for patient_id in patients_with_all:
-        for measurement_name, nice_name in zip(measurements_needed_tomtec, nice_names_tomtec):
-            needed_data[patient_id][nice_name] = [tomtec_needed_data[tomtec_needed_data['patient_ID']==patient_id]
-                    [measurement_name].iloc[0]]
-            needed_data[patient_id][nice_name+'_count'] = 1
-            needed_data[patient_id][nice_name+'_type'] = 'float'
-
-    return needed_data, patients_with_all, nice_names_all, invasive_dt
-
-if __name__ == '__main__':
-    
-    ec = BBdata()
-
-    inv_data_path = '/eresearch/heart/farg967/Sandboxes/Stephen/Biobeat/IVP_data_test.pickle'
-    tomtec_data_path = '/eresearch/heart/farg967/Sandboxes/Finbar/tomtec/tomtec_data.csv'
-    tomtec_desc_path = '/eresearch/heart/farg967/Sandboxes/Finbar/tomtec/tomtec_desc.csv'
-
-    # define 
-    measurements_needed_inv = ['LV', 'AO']
-    nice_names_inv = ['P_lv', 'P_ao'] # THese correspond to the above
-    measurements_needed_tomtec = ['US.CA.LVOT.VMAX:ANTFLOW:DOPPLER', 'US.CA.LVOT.DIAM:BMODE', 'US.CA.AO.DIAM_STJ:BMODE']
-    nice_names_tomtec = ['vel_aov', 'd_aov', 'd_ao'] # THese correspond to the above
-    nice_names_all = nice_names_inv + nice_names_tomtec
-    sample_rate = 240
-    dt = 1/sample_rate
-
-    print(f'getting data for the patients with this data')
-    print(nice_names_all)
-
-    data_dict, all_patient_ids, nice_measurement_names = get_needed_data_inv_and_tomtec(inv_data_path, tomtec_data_path, 
-                                                    measurements_needed_inv, 
-                                                    measurements_needed_tomtec, 
-                                                    nice_names_inv=nice_names_inv, 
-                                                    nice_names_tomtec=nice_names_tomtec)
-
-    print(data_dict)
-    num_patients = len(all_patient_ids)
-
-    print(f'data dict for patients and needed measurements created')
-    print(f'running analysis with {num_patients} patients')
-
-    fig, ax = subfigure()
-
-    for patient_id in all_patient_ids:
-        for measurement in nice_measurement_names:
-            for idx in range(data_dict[patient_id][measurement+'_count'])
-                ax.plot(
