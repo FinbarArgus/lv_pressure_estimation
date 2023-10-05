@@ -198,21 +198,23 @@ def write_to_json_file(data_dict, variables_of_interest, constants_of_interest, 
                          'data_reference': data_reference}
                 constant_list.append(constant_entry)
 
-        json_df = pd.DataFrame(entry_list)
-        if extra_df is not None:
-            json_df = pd.concat([json_df, extra_df])
-        print(json_df)
-        # json_tomtec_df.to_json(output_json_file_name)
-        result = json_df.to_json(orient='records')
-        parsed = json.loads(result)
-        with open(os.path.join(save_path, f'{save_name}_observables_{participant_id}.json'), 'w') as wf:
-            json.dump(parsed, wf, indent=2)
+        if len(entry_list) > 0:
+            json_df = pd.DataFrame(entry_list)
+            if extra_df is not None:
+                json_df = pd.concat([json_df, extra_df])
+            print(json_df)
+            # json_tomtec_df.to_json(output_json_file_name)
+            result = json_df.to_json(orient='records')
+            parsed = json.loads(result)
+            with open(os.path.join(save_path, f'{save_name}_observables_{participant_id}.json'), 'w') as wf:
+                json.dump(parsed, wf, indent=2)
         
-        constants_json_df = pd.DataFrame(constant_list)
-        constants_result = constants_json_df.to_json(orient='records')
-        constants_parsed = json.loads(constants_result)
-        with open(os.path.join(save_path, f'{save_name}_constants_{participant_id}.json'), 'w') as wf:
-            json.dump(constants_parsed, wf, indent=2)
+        if len(constant_list) > 0:
+            constants_json_df = pd.DataFrame(constant_list)
+            constants_result = constants_json_df.to_json(orient='records')
+            constants_parsed = json.loads(constants_result)
+            with open(os.path.join(save_path, f'{save_name}_constants_{participant_id}.json'), 'w') as wf:
+                json.dump(constants_parsed, wf, indent=2)
 
 def get_pressure_segments_and_intrabeat_periods_from_ecg(data_dict, plot_dir):
 
