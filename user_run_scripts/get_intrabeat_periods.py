@@ -18,7 +18,7 @@ import warnings
 warnings.filterwarnings( "ignore", module = "matplotlib\..*" )
 
 
-if __name__ == '__main__':
+def generate_intrabeat_periods_json(patient_num):
 
     do_plot = True
 
@@ -26,15 +26,18 @@ if __name__ == '__main__':
     st = signal_tools()
 
     data_dir_path = '/home/farg967/Documents/data/pulmonary/Alfred_ECG_Pre_Post_P1_13'
-    ecg_path = os.path.join(data_dir_path, 'P7_pre_PEA.csv')
     plot_dir = os.path.join(data_dir_path, 'plots')
     if not os.path.exists(plot_dir):
         os.mkdir(plot_dir)
+        
+    fs = 180 
+    dt = 1/fs
+
+    
+    ecg_path = os.path.join(data_dir_path, f'P{patient_num}_pre_PEA.csv')
             
     # read in ECG data with numpy
     ecg_data = np.genfromtxt(ecg_path, delimiter=',', skip_header=1)
-    fs = 240
-    dt = 1/fs
     time = np.arange(0, len(ecg_data)*dt, dt)
 
     if do_plot:
@@ -82,11 +85,11 @@ if __name__ == '__main__':
     mean_t_astart = np.mean(heart_period_dict['t_astart'])
 
     opt_idx = np.argmin([(heart_period_dict['T'][II]-mean_T)**2 +
-                      (heart_period_dict['T_vc'][II]-mean_T_vc)**2 +
-                      (heart_period_dict['T_ac'][II]-mean_T_ac)**2 +
-                      (heart_period_dict['T_ar'][II]-mean_T_ar)**2 +
-                      (heart_period_dict['t_astart'][II]-mean_t_astart)**2
-                      for II in range(num_segs_reduced)])
+                    (heart_period_dict['T_vc'][II]-mean_T_vc)**2 +
+                    (heart_period_dict['T_ac'][II]-mean_T_ac)**2 +
+                    (heart_period_dict['T_ar'][II]-mean_T_ar)**2 +
+                    (heart_period_dict['t_astart'][II]-mean_t_astart)**2
+                    for II in range(num_segs_reduced)])
 
     opt_T = heart_period_dict['T'][opt_idx]
     opt_T_vc = heart_period_dict['T_vc'][opt_idx]
@@ -115,26 +118,37 @@ if __name__ == '__main__':
     no_conv = 1.0
     
     constants_of_interest = [('T', 'T',
-                            'second', no_conv, 'biobeat_measurement'),
-                             ('T_vc', 'T_vc',
-                            'second', no_conv, 'biobeat_measurement'),
-                             ('T_vr', 'T_vr',
-                              'second', no_conv, 'biobeat_measurement'),
-                             ('T_ac', 'T_ac',
-                              'second', no_conv, 'biobeat_measurement'),
-                             ('T_ar', 'T_ar',
-                              'second', no_conv, 'biobeat_measurement'),
-                             ('t_astart', 't_astart',
-                            'second', no_conv, 'biobeat_measurement')]
+                            'second', no_conv, 'Alfred_database'),
+                            ('T_vc', 'T_vc',
+                            'second', no_conv, 'Alfred_database'),
+                            ('T_vr', 'T_vr',
+                            'second', no_conv, 'Alfred_database'),
+                            ('T_ac', 'T_ac',
+                            'second', no_conv, 'Alfred_database'),
+                            ('T_ar', 'T_ar',
+                            'second', no_conv, 'Alfred_database'),
+                            ('t_astart', 't_astart',
+                            'second', no_conv, 'Alfred_database')]
 
     variables_of_interest = []
     
-    reduced_data_dict = {'03': optimal_dict}
-    save_dir= os.path.join(data_dir_path, 'constants_for_model')
+    reduced_data_dict = {f'{patient_num}': optimal_dict}
+    save_dir= os.path.join(data_dir_path, '../ground_truth_for_CA')
     if not os.path.exists(save_dir):
         os.mkdir(save_dir)
     
     write_to_json_file(reduced_data_dict, variables_of_interest, constants_of_interest,
-                       save_dir, save_name='alfred_periods', sample_rate=240.0)
+                    save_dir, save_name='alfred_periods', sample_rate=fs)
     
+if __name__ == "__main__":
+    
+    if len(sys.argv) == 2:
+        patient_num=sys.argv[1]
+        
+    else:
+        print("usage:  python generate_intrabeat_periods.py patient_num") 
+        exit()
+
+    generate_intrabeat_periods_json(patient_num)
+
     

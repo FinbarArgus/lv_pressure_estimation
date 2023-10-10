@@ -1,3 +1,5 @@
+For Preprocessing of data for circulatory_autogen
+
 This repo has scripts and functions for working with datasets to get them in json files ready for circulatory autogen.
 
 /user_run_scripts/get_intrabeat_periods.py inputs csv file with only ecg data and outputs the intrabeat periods. 
