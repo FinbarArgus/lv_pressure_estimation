@@ -47,7 +47,7 @@ def generate_intrabeat_periods_json(patient_num):
         plt.savefig(os.path.join(plot_dir, 'ecg_data.png'))
 
     time_segs, ecg_segs, quality, heart_period_dict =  \
-            st.slice_by_ecg_with_quality(time, ecg_data)
+            st.slice_by_ecg_with_quality(time, ecg_data, fs=fs)
     
     num_segs = len(time_segs)
 
@@ -112,7 +112,7 @@ def generate_intrabeat_periods_json(patient_num):
     plt.vlines(time_segs[opt_idx][0], min(ecg_segs[opt_idx]), max(ecg_segs[opt_idx]), 'k', 'dashed')
     plt.vlines(time_segs[opt_idx][-1], min(ecg_segs[opt_idx]), max(ecg_segs[opt_idx]), 'k', 'dashed')
 
-    plt.savefig(os.path.join(plot_dir, f'ecg_segs.png'))
+    plt.savefig(os.path.join(plot_dir, f'ecg_segs_{patient_num}.png'))
     plt.close()
 
     no_conv = 1.0
