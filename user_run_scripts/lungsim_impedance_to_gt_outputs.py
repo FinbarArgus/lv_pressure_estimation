@@ -1,13 +1,14 @@
 import json
 import pandas as pd
 import sys
+import os
 
-def convert_lungsim_output_to_obs_data_json(patient_num, pre_or_post):
+def convert_lungsim_output_to_obs_data_json(patient_num, pre_or_post, project_dir):
 
-    data_file_path = f'/home/farg967/Documents/data/pulmonary/lobe_impedances/{patient_num}/{pre_or_post}/lobe_imped.json'
-    vessel_array_path = f"/home/farg967/Documents/physiology_models/pulmonary_CVS_Alfred/patient_{patient_num}/{pre_or_post}/resources/lung_ROM_vessel_array.csv"
-    save_file_path = f'/home/farg967/Documents/data/pulmonary/ground_truth_for_CA/ROM_gt/lung_ROM_lobe_imped_{pre_or_post}_patient_{patient_num}_obs_data.json'
-    constants_save_file_path = f'/home/farg967/Documents/data/pulmonary/ground_truth_for_CA/ROM_gt/vessel_geom_constants_{pre_or_post}_patient_{patient_num}.json'
+    data_file_path = os.path.join(project_dir, f'data/pulmonary/lobe_impedances/{patient_num}/{pre_or_post}/lobe_imped.json')
+    vessel_array_path = os.path.join(project_dir, f"physiology_models/pulmonary_CVS_Alfred/patient_{patient_num}/{pre_or_post}/resources/lung_ROM_vessel_array.csv")
+    save_file_path = os.path.join(project_dir, f'data/pulmonary/ground_truth_for_CA/ROM_gt/lung_ROM_lobe_imped_{pre_or_post}_patient_{patient_num}_obs_data.json')
+    constants_save_file_path = os.path.join(project_dir, f'data/pulmonary/ground_truth_for_CA/ROM_gt/vessel_geom_constants_{pre_or_post}_patient_{patient_num}.json')
 
     with open(data_file_path, 'r') as file:
         data = json.load(file)
@@ -249,18 +250,19 @@ def convert_lungsim_output_to_obs_data_json(patient_num, pre_or_post):
 
 if __name__ == "__main__":
 
-    if len(sys.argv) == 3:
+    if len(sys.argv) == 4:
         patient_num=sys.argv[1]
         pre_or_post = sys.argv[2]
+        project_dir = sys.argv[3]
         if pre_or_post not in ['pre', 'post']:
             print(f'pre_or_post must be "pre" or "post", not {pre_or_post}')
             exit()
         
     else:
-        print("usage:  python lungsim_impedance_to_gt_output.py patient_num pre_or_post") 
+        print("usage:  python lungsim_impedance_to_gt_output.py patient_num pre_or_post project_dir") 
         exit()
 
-    convert_lungsim_output_to_obs_data_json(patient_num, pre_or_post)
+    convert_lungsim_output_to_obs_data_json(patient_num, pre_or_post, project_dir)
 
 
 

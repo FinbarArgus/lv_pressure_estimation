@@ -18,14 +18,14 @@ import warnings
 warnings.filterwarnings( "ignore", module = "matplotlib\..*" )
 
 
-def generate_intrabeat_periods_json(patient_num):
+def generate_intrabeat_periods_json(patient_num, project_dir):
 
     do_plot = True
 
     ec = BBdata()
     st = signal_tools()
 
-    data_dir_path = '/home/farg967/Documents/data/pulmonary/Alfred_ECG_Pre_Post_P1_13'
+    data_dir_path = os.path.join(project_dir, 'data/pulmonary/Alfred_ECG_Pre_Post_P1_13')
     plot_dir = os.path.join(data_dir_path, 'plots')
     if not os.path.exists(plot_dir):
         os.mkdir(plot_dir)
@@ -142,13 +142,14 @@ def generate_intrabeat_periods_json(patient_num):
     
 if __name__ == "__main__":
     
-    if len(sys.argv) == 2:
-        patient_num=sys.argv[1]
+    if len(sys.argv) == 3:
+        patient_num = sys.argv[1]
+        project_dir = sys.argv[2]
         
     else:
-        print("usage:  python generate_intrabeat_periods.py patient_num") 
+        print("usage:  python get_intrabeat_periods.py patient_num project_dir") 
         exit()
 
-    generate_intrabeat_periods_json(patient_num)
+    generate_intrabeat_periods_json(patient_num, project_dir)
 
     

@@ -6,12 +6,12 @@ from matplotlib import pyplot as plt
 import os
 from get_valve_data import write_to_json_file
 
-def create_gt_obs_data_Alfred(patient_num):
+def create_gt_obs_data_Alfred(patient_num, project_dir):
 
     # TODO the file paths should be inputs to this function
-    data_dir_path = '/home/farg967/Documents/data/pulmonary'
+    data_dir_path = os.path.join(project_dir, 'data/pulmonary')
     data_file_path = os.path.join(data_dir_path, 'Alfred_Echo_Pre_Post_vols_P1_13.csv')
-    save_dir_path = '/home/farg967/Documents/data/pulmonary/ground_truth_for_CA'
+    save_dir_path = os.path.join(project_dir, 'data/pulmonary/ground_truth_for_CA')
     if not os.path.exists(save_dir_path):
         os.mkdir(save_dir_path)
     
@@ -121,9 +121,12 @@ def create_gt_obs_data_Alfred(patient_num):
 
 if __name__ == '__main__':
         
-    if len(sys.argv) == 2:
+    if len(sys.argv) == 3:
         patient_num=sys.argv[1]
+        project_dir=sys.argv[2]
         
     else:
-        print("usage:  python create_gt_Alfred.py patient_num") 
+        print("usage:  python create_gt_Alfred.py patient_num project_dir") 
         exit()
+
+    create_gt_obs_data_Alfred(patient_num, project_dir)
