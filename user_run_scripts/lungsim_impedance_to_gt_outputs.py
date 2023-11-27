@@ -40,6 +40,19 @@ def convert_lungsim_output_to_obs_data_json(patient_num, pre_or_post, project_di
         radius_entry["value"] = const_conversion*data['radius'][data["vessel_names"][II]][0]
         radius_entry["data_reference"] = 'Alfred_database'
         
+        us_radius_entry = {}
+        us_radius_entry["variable_name"] = f'r_us_{data["vessel_names"][II]}'
+        us_radius_entry["units"] = 'metre'
+        if data['unstrained radius']['unit'] == 'mm':
+            const_conversion = 1e-3
+        elif data['unstrained radius']['unit'] == 'metre':
+            const_conversion = 1
+        else:
+            print('unit of', data['unstrained radius']['unit'], 'is not implemented') 
+            exit()
+        us_radius_entry["value"] = const_conversion*data['radius'][data["vessel_names"][II]][0]
+        us_radius_entry["data_reference"] = 'Alfred_database'
+        
         length_entry = {}
         length_entry["variable_name"] = f'l_{data["vessel_names"][II]}'
         length_entry["units"] = 'metre'
@@ -63,6 +76,7 @@ def convert_lungsim_output_to_obs_data_json(patient_num, pre_or_post, project_di
         length_entry["data_reference"] = 'Alfred_database'
 
         constant_list.append(radius_entry)
+        constant_list.append(us_radius_entry)
         constant_list.append(length_entry)
 
         arteries_to_skip = ["MPA_A", "LPA_A", "RPA_A", "RBS_A", "LBS_A"] # []
