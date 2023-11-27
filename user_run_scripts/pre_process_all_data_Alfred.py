@@ -5,8 +5,8 @@ from create_gt_Alfred import create_gt_obs_data_Alfred
 if __name__ == "__main__":
 
     patient_nums = [4, 7]
-    project_dir = '/home/farg967/Documents'
-    # project_dir = '/hpc/farg967/pulmonary_workspace'
+    # project_dir = '/home/farg967/Documents'
+    project_dir = '/hpc/farg967/pulmonary_workspace'
 
     for patient_num in patient_nums:
 

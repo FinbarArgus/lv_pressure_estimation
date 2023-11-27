@@ -19,7 +19,7 @@ def convert_lungsim_output_to_obs_data_json(patient_num, pre_or_post, project_di
 
     mean_flow = 8e-5 # TODO this might be changed
 
-    approx_downstream_resistance_ratio = 0.35 # TODO make this exact from the radii/lengths
+    approx_downstream_resistance_ratio = 0.2 # TODO make this exact from the radii/lengths
 
     full_dict = {}
     entry_list = []
@@ -27,17 +27,18 @@ def convert_lungsim_output_to_obs_data_json(patient_num, pre_or_post, project_di
     terminal_names = []
     for II in range(len(data["vessel_names"])):
         # get radius and length entries
+        # TODO get strained and unstrained radii, for resistance and compliance respectively
         radius_entry = {}
         radius_entry["variable_name"] = f'r_{data["vessel_names"][II]}'
         radius_entry["units"] = 'metre'
-        if data['radius']['unit'] == 'mm':
+        if data['unstrained radius']['unit'] == 'mm':
             const_conversion = 1e-3
-        elif data['radius']['unit'] == 'metre':
+        elif data['unstrained radius']['unit'] == 'metre':
             const_conversion = 1
         else:
-            print('unit of', data['radius']['unit'], 'is not implemented') 
+            print('unit of', data['unstrained radius']['unit'], 'is not implemented') 
             exit()
-        radius_entry["value"] = const_conversion*data['radius'][data["vessel_names"][II]][0]
+        radius_entry["value"] = const_conversion*data['unstrained radius'][data["vessel_names"][II]][0]
         radius_entry["data_reference"] = 'Alfred_database'
         
         length_entry = {}
@@ -50,16 +51,8 @@ def convert_lungsim_output_to_obs_data_json(patient_num, pre_or_post, project_di
         else:
             print('unit of', data['Length']['unit'], 'is not implemented') 
             exit()
-        # TODO This is temporary until Behdad gives updated MPA LPA RPA lengths
-        # TODO 
-        # TODO
-        # TODO remove the below if statement!!!
-        if data["vessel_names"][II].startswith("MPA"):
-            length_entry["value"] = 4    *      const_conversion*data['Length'][data["vessel_names"][II]][0]
-        elif data["vessel_names"][II].startswith("LPA") or data["vessel_names"][II].startswith("RPA"):
-            length_entry["value"] = 3     *      const_conversion*data['Length'][data["vessel_names"][II]][0]
-        else:
-            length_entry["value"] = const_conversion*data['Length'][data["vessel_names"][II]][0]
+        
+        length_entry["value"] = const_conversion*data['Length'][data["vessel_names"][II]][0]
         length_entry["data_reference"] = 'Alfred_database'
 
         constant_list.append(radius_entry)
@@ -101,7 +94,7 @@ def convert_lungsim_output_to_obs_data_json(patient_num, pre_or_post, project_di
         entry["value"] = [val*conversion for val in data["impedance"][data["vessel_names"][II]]]
         entry["std"] = [conversion*val/10 for val in data["impedance"][data["vessel_names"][II]]]
         entry["frequencies"] = data["frequency"]
-        entry["phase"] = [-val for val in data["phase"][data["vessel_names"][II]]] # IMPORTANT phase is multiplied by negative one
+        entry["phase"] = [val for val in data["phase"][data["vessel_names"][II]]] # IMPORTANT phase is multiplied by negative one
                                                                                    # because the data has the wrong sign
 
         entry["weight"] = [1.0 for val in data["phase"][data["vessel_names"][II]]]
