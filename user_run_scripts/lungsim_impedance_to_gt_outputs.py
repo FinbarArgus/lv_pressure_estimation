@@ -133,51 +133,70 @@ def convert_lungsim_output_to_obs_data_json(patient_num, pre_or_post, project_di
             entry["operands"] = [f'{data["vessel_names"][II]}/u',
                                  f'{input_vessel}/v']
 
+        updated_imp = [val*conversion for idx, val in enumerate(data["impedance"][data["vessel_names"][II]]) \
+                if not 0 < idx < 10]
+        updated_std = [val/10 for val in updated_imp]
+        updated_phase = [val for idx, val in enumerate(data["phase"][data["vessel_names"][II]]) \
+                if not 0 < idx < 10]
+        updated_freq = [val for idx, val in enumerate(data["frequency"]) \
+                if not 0 < idx < 10]
         entry["unit"] = "Js/m^6" # data["impedance"]["unit"]
         entry["obs_type"] = "frequency"
-        entry["value"] = [val*conversion for val in data["impedance"][data["vessel_names"][II]]]
-        entry["std"] = [conversion*val/10 for val in data["impedance"][data["vessel_names"][II]]]
-        entry["frequencies"] = data["frequency"]
-        entry["phase"] = [val for val in data["phase"][data["vessel_names"][II]]] # IMPORTANT phase is multiplied by negative one
-                                                                                   # because the data has the wrong sign
+        entry["value"] = updated_imp
+        entry["std"] = updated_std
+        entry["frequencies"] = updated_freq
+        entry["phase"] = updated_phase
 
-        if entry["variable"] in arteries_to_skip:
-            entry["weight"] = [0.5 for val in data["phase"][data["vessel_names"][II]]]
-            # don't skip them anymore, add small weights, so the inertia knows to morph to fit these
-            entry["weight"][0] = 4 # 
-            entry["weight"][1] = 4 
-            entry["weight"][2] = 2
-            entry["weight"][3] = 1
-        else:
-            entry["weight"] = [1.0 for val in data["phase"][data["vessel_names"][II]]]
-            # entry["weight"][0] = 6 # small because the total resistance isn't free
-            entry["weight"][0] = 20 # big because total resistance is most important
-            entry["weight"][1] = 20
-            entry["weight"][2] = 10
-            entry["weight"][3] = 6
-            entry["weight"][4] = 4
-            entry["weight"][5] = 3
-            
-        # give the main arteries a higher weight for their phase
-        if data["vessel_names"][II] in main_arteries:
-            entry["phase_weight"] = [5.0 for val in data["phase"][data["vessel_names"][II]]]
-            entry["phase_weight"][0] = 0.0 # zeroth entry will always be zero
-            entry["phase_weight"][1] = entry["phase_weight"][1]*3
-            entry["phase_weight"][2] = entry["phase_weight"][2]*2
-            # TODO the below sets all of the remaining phase weights after start_range to zero
-            for KK in range(4, len(entry["phase_weight"])):
-                entry["phase_weight"][KK] = 0.0
-        else:
-            entry["phase_weight"] = [2.0 for val in data["phase"][data["vessel_names"][II]]]
-            entry["phase_weight"][0] = 0.0 # zeroth entry will always be zero
-            entry["phase_weight"][1] = entry["phase_weight"][1]*5
-            entry["phase_weight"][2] = entry["phase_weight"][2]*2
-            # TODO the below sets all of the remaining phase weights after start_range to zero
-            for KK in range(4, len(entry["phase_weight"])):
-                entry["phase_weight"][KK] = 0.0
+        entry["weight"] = [0.0 for val in updated_imp]
+        entry["phase_weight"] = [0.0 for val in updated_imp]
+        for idx in range(len(updated_imp)):
+            if entry["variable"] in arteries_to_skip:
+                if idx == 0 :
+                    entry["weight"][idx] = 4 # 
+                elif idx < 10:
+                    entry["weight"][idx] = 0 # 
+                elif idx < 30:
+                    entry["weight"][idx] = 0.05
+            else:
+                if idx == 0 :
+                    entry["weight"][idx] = 20# big because total resistance is most important
+                    # entry["weight"][0] = 0.6 # small because the total resistance isn't free
+                elif idx < 10:
+                    entry["weight"][idx] = 0
+                elif idx <30:
+                    entry["weight"][idx] = 5
+                elif idx <40:
+                    entry["weight"][idx] = 3
+                elif idx <50:
+                    entry["weight"][idx] = 2.0
+                elif idx <60:
+                    entry["weight"][idx] = 0.0
+                else:
+                    entry["weight"][idx] = 0.0
+
+            # give the main arteries a higher weight for their phase
+            if data["vessel_names"][II] in main_arteries:
+                if idx<10:
+                    entry["phase_weight"][idx] = 0.0 # entries less than HR period will always be zero
+                elif idx<20:
+                    entry["phase_weight"][idx] = 1.0 # 1.5 
+                elif idx<30:
+                    entry["phase_weight"][idx] = 0.5 # 1.0 
+                else:
+                    entry["phase_weight"][idx] = 0.0
+
+            else:
+                if idx<10:
+                    entry["phase_weight"][idx] = 0.0 # entries less than HR period will always be zero
+                elif idx<20:
+                    entry["phase_weight"][idx] = 0.5 
+                elif idx<30:
+                    entry["phase_weight"][idx] = 0.2 
+                else:
+                    entry["phase_weight"][idx] = 0.0
 
         # get the mean flow for this vessel
-        if data['mean flow']['unit'] == 'mm3/s':
+        if data['mean flow']['unit'] in ['mm3/s', 'mm^3/s']:
             flow_conversion = 1e-9
         else:
             print(f'flow unit of {data["mean flow"]["unit"]} is unknown')
